@@ -14,7 +14,17 @@ namespace UDP_send_mp3_API
             List<client_IPEndPoint> clientList = new List<client_IPEndPoint>()
             {
                  new client_IPEndPoint(){ ID_client = "20154023", On = true},
-                 new client_IPEndPoint(){ ID_client = "20164023", On = false}
+                 new client_IPEndPoint(){ ID_client = "20164023", On = false},
+                 new client_IPEndPoint(){ ID_client = "00000001", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000002", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000003", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000004", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000005", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000006", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000007", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000008", On = true},
+                 new client_IPEndPoint(){ ID_client = "00000009", On = true},
+                 new client_IPEndPoint(){ ID_client = "000000010", On = true},
             };
 
             List<soundTrack> soundList = new List<soundTrack>()
