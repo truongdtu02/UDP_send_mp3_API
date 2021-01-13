@@ -39,7 +39,7 @@ namespace UDP_send_mp3_API
             //int x = 0;
             UDPsocket udpSocket = new UDPsocket();
             //launch
-            udpSocket.launchUDPsocket(soundList, clientList);
+            udpSocket.launchUDPsocket(soundListServer, clientList);
             //create UDP socket listen from client
             udpSocket.UDPsocketListen();
             //create UDP socket for sending mp3 frame to client
