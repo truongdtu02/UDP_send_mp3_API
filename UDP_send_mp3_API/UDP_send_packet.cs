@@ -85,6 +85,9 @@ namespace UDP_send_packet_frame
                 threadCheckRequestFunc(watch_client);
             });
 
+            threadCheckRequest.Priority = ThreadPriority.Lowest;
+            threadListen.Priority = ThreadPriority.Normal;
+
             threadListen.Start();
             threadCheckRequest.Start();
         }
@@ -96,7 +99,7 @@ namespace UDP_send_packet_frame
             {
                 threadSendFunc();
             });
-
+            threadSend.Priority = ThreadPriority.Highest;
             threadSend.Start();
         }
 
