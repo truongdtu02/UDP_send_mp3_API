@@ -121,6 +121,13 @@ namespace UDP_send_packet_frame
 
                 if(length == 8)
                 {
+                    //test request
+                    IPEndPoint receive = (IPEndPoint)receive_IPEndPoint;
+                    Console.WriteLine("This message lentgh:" + length.ToString() + " was sent from " +
+                                                receive.Address.ToString() +
+                                                " on their port number " + receive.Port.ToString());
+
+
                     //get id client
                     var ID_client_received = Encoding.ASCII.GetString(receive_buffer, 0, 8);
 
@@ -272,12 +279,14 @@ namespace UDP_send_packet_frame
                 }
             }
 
-            //copy num of frame (little edian)
-            byte[] tmp_byte = BitConverter.GetBytes(numOfFrame);
+            //copy num of frame 
+            byte[] tmp_byte = BitConverter.GetBytes(numOfFrame); //little edian
+            //Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
             Buffer.BlockCopy(tmp_byte, 0, _send_buff, 0, 4);
 
-            //copy total length frame (byte) (little edian)
-            tmp_byte = BitConverter.GetBytes(totalLength);
+            //copy total length frame (byte) 
+            tmp_byte = BitConverter.GetBytes(totalLength); //little edian
+            //Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
             Buffer.BlockCopy(tmp_byte, 0, _send_buff, 4, 4);
 
             sizeOfPacket = 8 + totalLength;
@@ -301,6 +310,8 @@ namespace UDP_send_packet_frame
         bool timeOut = true; //timeOut = true, that mean don't receive request in last 5s, and don't send
 
         bool on; //change this on app
+
+        int numSend = 2; //multi packet is sent to client to improve UDP loss
 
         //server just sends to client when timeOut == false and On == true
 
