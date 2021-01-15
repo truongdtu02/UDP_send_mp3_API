@@ -29,14 +29,16 @@ namespace UDP_send_mp3_API
 
             List<soundTrack> soundList = new List<soundTrack>()
             {
-                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\Binz.mp3"},
-                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\LoveIsBlue.mp3"}
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\duaComChoMeEmDiCay.mp3"},
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\duaComChoMeEmDiCay.mp3"},
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\xeDap.mp3"}
             };
 
             List<soundTrack> soundListServer = new List<soundTrack>()
             {
-                new soundTrack(){ FilePath = "Binz.mp3"},
-                new soundTrack(){ FilePath = "LoveIsBlue.mp3"}
+                new soundTrack(){ FilePath = "duaComChoMeEmDiCay.mp3"},
+                new soundTrack(){ FilePath = "duaComChoMeEmDiCay.mp3"}
+                //new soundTrack(){ FilePath = "LoveIsBlue.mp3"}
             };
 
             //var mp3_buff = File.ReadAllBytes(soundList[1].FilePath);
