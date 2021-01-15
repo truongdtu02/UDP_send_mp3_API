@@ -281,12 +281,12 @@ namespace UDP_send_packet_frame
 
             //copy num of frame 
             byte[] tmp_byte = BitConverter.GetBytes(numOfFrame); //little edian
-            //Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
+            Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
             Buffer.BlockCopy(tmp_byte, 0, _send_buff, 0, 4);
 
             //copy total length frame (byte) 
             tmp_byte = BitConverter.GetBytes(totalLength); //little edian
-            //Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
+            Array.Reverse(tmp_byte); //convert to big edian, easy read at client(STM32)
             Buffer.BlockCopy(tmp_byte, 0, _send_buff, 4, 4);
 
             sizeOfPacket = 8 + totalLength;
