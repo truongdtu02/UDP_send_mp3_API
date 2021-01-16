@@ -71,11 +71,12 @@ namespace UDP_send_mp3_API
             int song_ID = 0; //order of song in soundList 
             Console.Title = "Project truyen thanh!!!";
             Console.OutputEncoding = Encoding.UTF8;
+            int cursor = Console.CursorTop;
             Console.WriteLine("Status: {0}", statusNow); //line 2-7
             Console.WriteLine("Song: {0}", song_ID); //line 3-6
             Console.WriteLine("Current time play: "); //line 4-19
             Console.WriteLine("Duration: 0:0"); //line 5-10
-
+            
             Console.WriteLine("Lệnh:");
             Console.WriteLine(" 1:Play/ Resume");
             Console.WriteLine(" 2:Pause");
@@ -93,24 +94,24 @@ namespace UDP_send_mp3_API
                     if (statusNow != udpSocket.Status)
                     {
                         statusNow = udpSocket.Status;
-                        Console.SetCursorPosition(8, 1);
+                        Console.SetCursorPosition(8, cursor);
                         Console.Write(statusNow + "    ");
                     }
                     if (song_ID != udpSocket.SongID)
                     {
                         song_ID = udpSocket.SongID;
-                        Console.SetCursorPosition(6, 2);
+                        Console.SetCursorPosition(6, cursor + 1);
                         Console.Write(song_ID);
                     }
 
                     currentTime = udpSocket.TimePlaying_song_s;
-                    Console.SetCursorPosition(19, 3);
+                    Console.SetCursorPosition(19, cursor+2);
                     Console.Write("{0,2}:{1,2}", currentTime / 60, currentTime % 60);
 
                     if (duration != udpSocket.Duration_song_s)
                     {
                         duration = udpSocket.Duration_song_s;
-                        Console.SetCursorPosition(10, 4);
+                        Console.SetCursorPosition(10, cursor+3);
                         Console.Write("{0,2}:{1,2}", duration / 60, duration % 60);
                     }
                     //Console.SetCursorPosition(43, 9);
