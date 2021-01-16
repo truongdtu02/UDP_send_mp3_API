@@ -41,7 +41,7 @@ namespace UDP_send_packet_frame
         //save duration and time playing of current song
         int duration_song_s = 0;
         int timePlaying_song_s = 0;
-        int songID = 1;
+        int songID = 0;
         public int Duration_song_s { get => duration_song_s; }
         public int TimePlaying_song_s { get => timePlaying_song_s; }
         public int SongID { get => songID;}
@@ -49,16 +49,19 @@ namespace UDP_send_packet_frame
         //for threadSend
         const int Max_send_buff_length = 1472;
         byte[] sendBuffer = new byte[Max_send_buff_length];
+        //Stopwatch stopWatchSend = new Stopwatch();
+        //private static Semaphore _pool;
         //List soundTrack
         List<soundTrack> soundList = new List<soundTrack>();
         public List<soundTrack> SoundList { get => soundList; set => soundList = value; }
-        
+
 
         //status to set up: play, pause, stop
+        internal int resumeNextPrevious = 0;
         public enum status_enum { PLAY, PAUSE, STOP };
         status_enum status = status_enum.STOP;
         public status_enum Status { get => status; }
-        
+               
 
         public bool launchUDPsocket(List<soundTrack> _soundList, List<client_IPEndPoint> _clientList)
         {
@@ -103,7 +106,6 @@ namespace UDP_send_packet_frame
 
         public void UDPsocketSend()
         {
-            
             threadSend = new Thread(() =>
             {
                 threadSendFunc();
@@ -114,19 +116,39 @@ namespace UDP_send_packet_frame
 
         public bool controlThreadSend(int _control)
         {
-            //_control: 1      2       3
-            //          pause, resume, stop
-            if( (_control == 1)  && (status == status_enum.PLAY))
+            //_control: 1      2       3      4         5
+            //          pause, resume, next, previous, stop
+            if ( (_control == 1)  && (status == status_enum.PLAY))
             {
-
+                status = status_enum.PAUSE;
+                //stopWatchSend.Stop();
+                //threadSend.Suspend();
+                //threadSend.Sleep(Timeout.Infinite);
             }
             else if((_control == 2) && (status == status_enum.PAUSE))
             {
-
+                status = status_enum.PLAY;
+                resumeNextPrevious = 2;
+                //stopWatchSend.Start();
+                //threadSend.Resume();
             }
-            else if((_control == 3) && (status != status_enum.STOP))
+            else if(status != status_enum.STOP)
             {
-
+                if (_control == 3) //next
+                {
+                    resumeNextPrevious = 3;
+                    status = status_enum.PLAY;
+                }
+                else if(_control == 4)
+                {
+                    resumeNextPrevious = 4;
+                    status = status_enum.PLAY;
+                }
+                else if (_control == 5)
+                {
+                    status = status_enum.STOP;
+                    //threadSend.Abort();
+                }
             }
             else
             {
@@ -140,10 +162,10 @@ namespace UDP_send_packet_frame
             if (length == 8)
             {
                 //test request
-                IPEndPoint receive = (IPEndPoint)receive_IPEndPoint;
+                /*IPEndPoint receive = (IPEndPoint)receive_IPEndPoint;
                 Console.WriteLine("This message lentgh:" + length.ToString() + " was sent from " +
                                             receive.Address.ToString() +
-                                            " on their port number " + receive.Port.ToString());
+                                            " on their port number " + receive.Port.ToString());*/
 
 
                 //get id client
@@ -197,13 +219,15 @@ namespace UDP_send_packet_frame
                 Thread.Sleep(5000); //check every 5s
             }
         }
-
         private void threadSendFunc()
         {
+            
+            status = status_enum.PLAY;
             while(true)
             {
                 for(int i = 0; i < soundList.Count; i++)
                 {
+                    int value_control = 0;
                     byte[] mp3_buff;
                     try
                     {
@@ -215,8 +239,33 @@ namespace UDP_send_packet_frame
                         Console.WriteLine(ex);
                         continue;
                     }
+                    songID = i;
+                    value_control = sendPacketMP3(mp3_buff, mp3_buff.Length);
 
-                    sendPacketMP3(mp3_buff, mp3_buff.Length);
+                    if (value_control == 3) //next
+                    {
+                       
+                    }
+                    else if(value_control == 4) //previuos
+                    {
+                        if(i > 0)
+                        {
+                            i -= 2;
+                            //continue;
+                        }
+                        else if(i == 0)
+                        {
+                            i = soundList.Count - 2;
+                        }
+                    }
+                    else if(value_control == 5) //stop
+                    {
+                        songID = 0;
+                        timePlaying_song_s = 0;
+                        duration_song_s = 0;
+                        return;
+                    }
+
                 }
                 if(!loopBack)
                 {
@@ -225,17 +274,15 @@ namespace UDP_send_packet_frame
             }
         }
 
-        private bool sendPacketMP3(byte[] mp3_buff, int mp3_buff_length)
-        {
-            //launch timer
-            var stopWatch = new Stopwatch();
+        private int sendPacketMP3(byte[] mp3_buff, int mp3_buff_length)
+        {          
             
             double timePoint, mark_time = 0;           
 
             var mp3_reader = new MP3_frame(mp3_buff, mp3_buff_length);
             if(!mp3_reader.IsValidMp3())
             {
-                return false;
+                return -1;
             }
             //const double framemp3_time = (double)1152.0 * 1000.0 / 44100.0; //ms
             double framemp3_time = mp3_reader.TimePerFrame_ms;
@@ -246,12 +293,41 @@ namespace UDP_send_packet_frame
 
             SocketFlags socketFlag = new SocketFlags();
 
-            stopWatch.Start();
+            //launch timer
+            Stopwatch stopWatchSend = new Stopwatch();
+            stopWatchSend.Start();
 
             while (true)
             {
                 //change status, return value to threadSendFunc
                 //value: 1-play-next, 2-play-previous, 3-stop
+                if(status == status_enum.STOP)
+                {
+                    return 5;
+                }
+                else if(resumeNextPrevious > 0)
+                {
+                    int tmp = resumeNextPrevious;
+                    resumeNextPrevious = 0;
+                    if(tmp == 2)
+                    {
+                        stopWatchSend.Start();
+                    }
+                    else if(tmp > 4)
+                    {
+                        return 5;
+                    }
+                    else
+                    {
+                        return tmp;
+                    }
+                }
+                else if(status == status_enum.PAUSE)
+                {
+                    stopWatchSend.Stop();
+                    Thread.Sleep(500);
+                    continue;
+                }
 
                 numOfFrame = packet_udp_frameMP3(sendBuffer, Max_send_buff_length, mp3_reader);
                 if (numOfFrame < 1)
@@ -280,11 +356,10 @@ namespace UDP_send_packet_frame
                 mark_time += framemp3_time * numOfFrame; //point to next time frame
                 //get current time playing
                 timePlaying_song_s = (int)mark_time / 1000; //second
-                timePoint = mark_time - stopWatch.Elapsed.TotalMilliseconds;
+                timePoint = mark_time - stopWatchSend.Elapsed.TotalMilliseconds;
                 if (timePoint > 0)
                 {
-                    Thread.Sleep((int)timePoint);
-                    
+                    Thread.Sleep((int)timePoint);                  
                 }
                 #if (DEBUG)
                     //Thread.Sleep(1000); //1s
@@ -293,8 +368,8 @@ namespace UDP_send_packet_frame
             //done a song
             timePlaying_song_s = 0;
             duration_song_s = 0;
-
-            return true;
+            stopWatchSend.Stop();
+            return 0;
         }
         static private int packet_udp_frameMP3(byte[] _send_buff, int _max_send_buff_length, MP3_frame _mp3_reader)
         {
@@ -358,7 +433,7 @@ namespace UDP_send_packet_frame
 
         bool on; //change this on app
 
-        int numSend = 2; //multi packet is sent to client to improve UDP loss
+        int numSend = 1; //multi packet is sent to client to improve UDP loss
         public int NumSend { get => numSend; set => numSend = value; }
 
         //server just sends to client when timeOut == false and On == true

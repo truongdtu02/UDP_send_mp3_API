@@ -11,11 +11,11 @@ namespace UDP_send_mp3_API
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            //Console.WriteLine("Hello World!");
 
             List<client_IPEndPoint> clientList = new List<client_IPEndPoint>()
             {
-                 new client_IPEndPoint(){ ID_client = "20154023", On = true},
+                 new client_IPEndPoint(){ ID_client = "20154023", On = true, NumSend = 1},
                  new client_IPEndPoint(){ ID_client = "20164023", On = false},
                  new client_IPEndPoint(){ ID_client = "00000001", On = true},
                  new client_IPEndPoint(){ ID_client = "00000002", On = true},
@@ -59,70 +59,119 @@ namespace UDP_send_mp3_API
             //create UDP socket listen from client
             udpSocket.UDPsocketListen();
             //create UDP socket for sending mp3 frame to client
-            udpSocket.UDPsocketSend();
-
-            //thread control for test
-            Thread readControl = new Thread(() =>
-            {
-                control(udpSocket);
-            });
-            readControl.Start();
-
-
+            //udpSocket.UDPsocketSend();
+            control(udpSocket);
         }
 
         static void control(UDPsocket udpSocket)
         {
             var statusNow = udpSocket.Status;
-            int currentTime = (int)udpSocket.TimePlaying_song_s; //second
-            var duration = udpSocket.Duration_song_s;
+            int currentTime = udpSocket.TimePlaying_song_s; //second
+            int duration = 0;
+            int song_ID = 0; //order of song in soundList 
             Console.Title = "Project truyen thanh!!!";
             Console.OutputEncoding = Encoding.UTF8;
-            Console.WriteLine("Staus: "); //line 2-7
-            Console.WriteLine("Song: "); //line 3-6
+            Console.WriteLine("Status: {0}", statusNow); //line 2-7
+            Console.WriteLine("Song: {0}", song_ID); //line 3-6
             Console.WriteLine("Current time play: "); //line 4-19
-            Console.WriteLine("Duration: ");
-            //thread update status every 1s
-            Thread displayStatus = new Thread(() =>
-            {
-                if(statusNow != udpSocket.Status)
-                {
-                    statusNow = udpSocket.Status;
-                    Console.SetCursorPosition(7, 2);
-                    Console.Write(statusNow);
-                }
-
-
-
-                currentTime = ((int)udpSocket.TimePlaying_song / 1000);
-                Console.SetCursorPosition(7, 2);
-                Console.Write("{0}:{1}", currentTime/60, currentTime%60);
-
-            });
-            displayStatus.Start();
+            Console.WriteLine("Duration: 0:0"); //line 5-10
 
             Console.WriteLine("Lệnh:");
             Console.WriteLine(" 1:Play/ Resume");
             Console.WriteLine(" 2:Pause");
-            Console.WriteLine(" 3:Stop");
-            Console.Write("Nhập số tương ứng để tiến hành điều khiển: ");
-            while (true)
+            Console.WriteLine(" 3:Next");
+            Console.WriteLine(" 4:Previous");
+            Console.WriteLine(" 5:Stop");
+            Console.Write("Nhập số tương ứng để tiến hành điều khiển: "); //line 10
+
+
+            //thread update status every 1s
+            Thread displayStatus = new Thread(() =>
             {
-                var control = Console.ReadKey(true);
-                switch(control.KeyChar)
+                while (true)
                 {
-                    case '1':
-                        //
-                        break;
-                    case '2':
-                        //
-                        break;
-                    case '3':
-                        //
-                        break;
+                    if (statusNow != udpSocket.Status)
+                    {
+                        statusNow = udpSocket.Status;
+                        Console.SetCursorPosition(8, 1);
+                        Console.Write(statusNow + "    ");
+                    }
+                    if (song_ID != udpSocket.SongID)
+                    {
+                        song_ID = udpSocket.SongID;
+                        Console.SetCursorPosition(6, 2);
+                        Console.Write(song_ID);
+                    }
+
+                    currentTime = udpSocket.TimePlaying_song_s;
+                    Console.SetCursorPosition(19, 3);
+                    Console.Write("{0,2}:{1,2}", currentTime / 60, currentTime % 60);
+
+                    if (duration != udpSocket.Duration_song_s)
+                    {
+                        duration = udpSocket.Duration_song_s;
+                        Console.SetCursorPosition(10, 4);
+                        Console.Write("{0,2}:{1,2}", duration / 60, duration % 60);
+                    }
+                    //Console.SetCursorPosition(43, 9);
+                    Thread.Sleep(1000);
                 }
-                    
-            }
+            });
+            displayStatus.Priority = ThreadPriority.BelowNormal;
+            displayStatus.Start();
+
+
+            //thread control for test
+            Thread readControl = new Thread(() =>
+            {
+                while (true)
+                {
+                    //Console.SetCursorPosition(43, 9);
+                    var control = Console.ReadKey(true);
+                    switch (control.KeyChar)
+                    {
+                        case '1': //play/resume
+                            //
+                            if(statusNow == UDPsocket.status_enum.STOP) //play
+                            {
+                                udpSocket.UDPsocketSend();
+                            }
+                            else if(statusNow == UDPsocket.status_enum.PAUSE) //resume
+                            {
+                                udpSocket.controlThreadSend(2);//resume
+                            }
+                            break;
+                        case '2': //pause
+                            //
+                            if (statusNow == UDPsocket.status_enum.PLAY) //play
+                            {
+                                udpSocket.controlThreadSend(1);//pause
+                            }
+                            break;
+                        case '3': //next
+                            if (statusNow != UDPsocket.status_enum.STOP) 
+                            {
+                                udpSocket.controlThreadSend(3);
+                            }
+                            break;
+                        case '4': //previous
+                            if (statusNow != UDPsocket.status_enum.STOP) 
+                            {
+                                udpSocket.controlThreadSend(4);
+                            }
+                            break;
+                        case '5': //stop
+                            //
+                            if (statusNow != UDPsocket.status_enum.STOP)
+                            {
+                                udpSocket.controlThreadSend(5);//stop
+                            }
+                            break;
+                    }
+                }
+            });
+            readControl.Priority = ThreadPriority.Lowest;
+            readControl.Start();          
         }
     }
 }
