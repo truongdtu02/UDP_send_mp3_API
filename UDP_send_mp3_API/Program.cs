@@ -55,7 +55,7 @@ namespace UDP_send_mp3_API
             var _status = udpSocket.Status; //get status (PLAY, PAUSE, STOP)
 
             //launch
-            udpSocket.launchUDPsocket(soundList, clientList);
+            udpSocket.launchUDPsocket(soundListServer, clientList);
             //create UDP socket listen from client
             udpSocket.UDPsocketListen();
             //create UDP socket for sending mp3 frame to client
