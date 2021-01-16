@@ -47,7 +47,7 @@ namespace UDP_send_packet_frame
         public int SongID { get => songID;}
 
         //for threadSend
-        const int Max_send_buff_length = 1472;
+        const int Max_send_buff_length = 534;//1472; //534
         byte[] sendBuffer = new byte[Max_send_buff_length];
         //Stopwatch stopWatchSend = new Stopwatch();
         //private static Semaphore _pool;
