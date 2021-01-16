@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Threading;
 using UDP_send_packet_frame;
 
 namespace UDP_send_mp3_API
@@ -29,14 +31,16 @@ namespace UDP_send_mp3_API
 
             List<soundTrack> soundList = new List<soundTrack>()
             {
-                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\Binz.mp3"},
-                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\LoveIsBlue.mp3"}
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\duaComChoMeEmDiCay.mp3"},
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\emYeuTruongEm.mp3"},
+                new soundTrack(){ FilePath = @"E:\truyenthanhproject\read_mp3\xeDap.mp3"}
             };
 
             List<soundTrack> soundListServer = new List<soundTrack>()
             {
-                new soundTrack(){ FilePath = "Binz.mp3"},
-                new soundTrack(){ FilePath = "LoveIsBlue.mp3"}
+                new soundTrack(){ FilePath = "duaComChoMeEmDiCay.mp3"},
+                new soundTrack(){ FilePath = "emYeuTruongEm.mp3"}
+                //new soundTrack(){ FilePath = "LoveIsBlue.mp3"}
             };
 
             //var mp3_buff = File.ReadAllBytes(soundList[1].FilePath);
@@ -48,12 +52,77 @@ namespace UDP_send_mp3_API
 
             //int x = 0;
             UDPsocket udpSocket = new UDPsocket();
+            var _status = udpSocket.Status; //get status (PLAY, PAUSE, STOP)
+
             //launch
-            udpSocket.launchUDPsocket(soundListServer, clientList);
+            udpSocket.launchUDPsocket(soundList, clientList);
             //create UDP socket listen from client
             udpSocket.UDPsocketListen();
             //create UDP socket for sending mp3 frame to client
             udpSocket.UDPsocketSend();
+
+            //thread control for test
+            Thread readControl = new Thread(() =>
+            {
+                control(udpSocket);
+            });
+            readControl.Start();
+
+
+        }
+
+        static void control(UDPsocket udpSocket)
+        {
+            var statusNow = udpSocket.Status;
+            int currentTime = (int)udpSocket.TimePlaying_song_s; //second
+            var duration = udpSocket.Duration_song_s;
+            Console.Title = "Project truyen thanh!!!";
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.WriteLine("Staus: "); //line 2-7
+            Console.WriteLine("Song: "); //line 3-6
+            Console.WriteLine("Current time play: "); //line 4-19
+            Console.WriteLine("Duration: ");
+            //thread update status every 1s
+            Thread displayStatus = new Thread(() =>
+            {
+                if(statusNow != udpSocket.Status)
+                {
+                    statusNow = udpSocket.Status;
+                    Console.SetCursorPosition(7, 2);
+                    Console.Write(statusNow);
+                }
+
+
+
+                currentTime = ((int)udpSocket.TimePlaying_song / 1000);
+                Console.SetCursorPosition(7, 2);
+                Console.Write("{0}:{1}", currentTime/60, currentTime%60);
+
+            });
+            displayStatus.Start();
+
+            Console.WriteLine("Lệnh:");
+            Console.WriteLine(" 1:Play/ Resume");
+            Console.WriteLine(" 2:Pause");
+            Console.WriteLine(" 3:Stop");
+            Console.Write("Nhập số tương ứng để tiến hành điều khiển: ");
+            while (true)
+            {
+                var control = Console.ReadKey(true);
+                switch(control.KeyChar)
+                {
+                    case '1':
+                        //
+                        break;
+                    case '2':
+                        //
+                        break;
+                    case '3':
+                        //
+                        break;
+                }
+                    
+            }
         }
     }
 }

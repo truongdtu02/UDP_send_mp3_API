@@ -62,8 +62,11 @@ namespace UDP_send_packet_frame
         public int Frame_size { get => frame_size; }
 
         int start_frame = 0, end_frame = 0;
+        double timePerFrame_ms;
+        public double TimePerFrame_ms { get => timePerFrame_ms; }
         public int Start_frame { get => start_frame; }
         public int End_frame { get => end_frame; }
+        
 
         public bool IsValidHeader(byte[] buff, int i_buff, int buff_length)
         {
@@ -119,6 +122,9 @@ namespace UDP_send_packet_frame
 
             //get sample per frame
             sample_per_frame = sample_per_frame_version[version - 1];
+
+            //timePerFrame_ms
+            timePerFrame_ms = 1000.0 * (double)sample_per_frame / (double)sample_rate;
 
             //get frame size
             double frame_size_tmp = bitrate * 1000 * sample_per_frame / 8 / sample_rate + padding;
